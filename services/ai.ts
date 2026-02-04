@@ -130,9 +130,13 @@ export async function askVedAgyaChat(question: string, userProfile: UserProfile)
     ? `Chart Context: Ascendant ${userProfile.astroData.ascendant}, Moon ${userProfile.astroData.moonSign}, Dasha ${userProfile.astroData.currentMahadasha}.`
     : `Chart Context: Unknown time. Basing on user reported patterns: ${JSON.stringify(userProfile.questionnaireAnswers)}`;
 
+  const liveContext = userProfile.currentLocation 
+    ? `Live Context: User is currently at Lat/Lng (${userProfile.currentLocation.lat}, ${userProfile.currentLocation.lng}) in Timezone ${userProfile.currentTimezone}.` 
+    : `Live Context: Timezone ${userProfile.currentTimezone || 'Unknown'}.`;
+
   const response = await ai.models.generateContent({
     model: model,
-    contents: `User Question: "${question}"\n\n${context}`,
+    contents: `User Question: "${question}"\n\n${context}\n${liveContext}`,
     config: {
       systemInstruction: VEDAGYA_SYSTEM_INSTRUCTION + "\nProvide a concise, 2-paragraph reflective answer. Do not give a direct Yes/No.",
     }
