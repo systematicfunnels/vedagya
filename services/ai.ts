@@ -121,7 +121,12 @@ export async function generateProfileInsights(userProfile: UserProfile): Promise
 export async function askVedAgyaChat(question: string, userProfile: UserProfile): Promise<string> {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY') {
-    throw new Error("Missing Gemini API Key. Please configure VITE_GEMINI_API_KEY in .env.local");
+     // If Gemini Key is missing, try OpenRouter directly
+     try {
+        return await callOpenRouterChat(question, userProfile);
+     } catch (err) {
+        throw new Error("Missing Gemini API Key and OpenRouter failed: " + err);
+     }
   }
 
   const model = "gemini-2.5-flash";
@@ -134,13 +139,65 @@ export async function askVedAgyaChat(question: string, userProfile: UserProfile)
     ? `Live Context: User is currently at Lat/Lng (${userProfile.currentLocation.lat}, ${userProfile.currentLocation.lng}) in Timezone ${userProfile.currentTimezone}.` 
     : `Live Context: Timezone ${userProfile.currentTimezone || 'Unknown'}.`;
 
-  const response = await ai.models.generateContent({
-    model: model,
-    contents: `User Question: "${question}"\n\n${context}\n${liveContext}`,
-    config: {
-      systemInstruction: VEDAGYA_SYSTEM_INSTRUCTION + "\nProvide a concise, 2-paragraph reflective answer. Do not give a direct Yes/No.",
-    }
-  });
+  try {
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: `User Question: "${question}"\n\n${context}\n${liveContext}`,
+      config: {
+        systemInstruction: VEDAGYA_SYSTEM_INSTRUCTION + "\nProvide a concise, 2-paragraph reflective answer. Do not give a direct Yes/No.",
+      }
+    });
 
-  return response.text || "I'm processing your patterns differently today. Could you rephrase?";
+    return response.text || "I'm processing your patterns differently today. Could you rephrase?";
+  } catch (error) {
+    console.warn("Gemini API failed, attempting OpenRouter fallback...", error);
+    try {
+      return await callOpenRouterChat(question, userProfile);
+    } catch (orError) {
+      console.error("OpenRouter fallback failed:", orError);
+      return "I'm having trouble connecting to the stars right now. Please try again later.";
+    }
+  }
+}
+
+// OpenRouter Fallback Logic
+async function callOpenRouterChat(question: string, userProfile: UserProfile): Promise<string> {
+    const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+    if (!apiKey) {
+        throw new Error("OpenRouter API Key missing");
+    }
+
+    const context = userProfile.astroData 
+      ? `Chart Context: Ascendant ${userProfile.astroData.ascendant}, Moon ${userProfile.astroData.moonSign}, Dasha ${userProfile.astroData.currentMahadasha}.`
+      : `Chart Context: Unknown time. Basing on user reported patterns: ${JSON.stringify(userProfile.questionnaireAnswers)}`;
+
+    const liveContext = userProfile.currentLocation 
+      ? `Live Context: User is currently at Lat/Lng (${userProfile.currentLocation.lat}, ${userProfile.currentLocation.lng}) in Timezone ${userProfile.currentTimezone}.` 
+      : `Live Context: Timezone ${userProfile.currentTimezone || 'Unknown'}.`;
+
+    const systemPrompt = VEDAGYA_SYSTEM_INSTRUCTION + "\nProvide a concise, 2-paragraph reflective answer. Do not give a direct Yes/No.";
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": window.location.origin, // Required by OpenRouter
+            "X-Title": "VedAgya"
+        },
+        body: JSON.stringify({
+            "model": "meta-llama/llama-3.1-8b-instruct:free", // Using a free/reliable fallback
+            "messages": [
+                { "role": "system", "content": systemPrompt },
+                { "role": "user", "content": `User Question: "${question}"\n\n${context}\n${liveContext}` }
+            ]
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`OpenRouter API Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || "I couldn't interpret the pattern this time.";
 }

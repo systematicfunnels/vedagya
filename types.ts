@@ -52,9 +52,48 @@ export interface AstroData {
   yogas?: string[]; // Result from /vedic/yogas (extracted names)
   panchang?: any; // Result from /vedic/panchang
   
+  // Extended Data
+  extendedPlanets?: ExtendedPlanet[];
+  divisionalCharts?: Record<string, DivisionalChart[]>; // Keyed by chart ID (e.g., "D1", "D9")
+
   // Debug/Confirmation
   timezone?: string;
   timezoneOffset?: number;
+}
+
+export interface ExtendedPlanet {
+  id: number;
+  name: string;
+  fullDegree: number;
+  normDegree: number;
+  speed: number;
+  isRetro: string | boolean;
+  sign: string;
+  signLord: string;
+  nakshatra: string;
+  nakshatraLord: string;
+  nakshatra_pad: number;
+  house: number;
+  is_planet_set: boolean;
+  planet_awastha: string;
+  
+  // Fields from /planets/extended response
+  localized_name?: string;
+  zodiac_sign_name?: string;
+  zodiac_sign_lord?: string;
+  nakshatra_name?: string;
+  nakshatra_number?: number;
+  nakshatra_pada?: number;
+  nakshatra_vimsottari_lord?: string;
+  house_number?: number;
+}
+
+export interface DivisionalChart {
+  sign: number;
+  sign_name: string;
+  planet: string[];       // e.g. ["SUN", "MARS"]
+  planet_small: string[]; // e.g. ["Su", "Ma"]
+  planet_degree: number[];
 }
 
 export interface AiInsights {

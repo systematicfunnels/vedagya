@@ -134,34 +134,154 @@ export async function fetchAstrologyData(
     // We only use endpoints confirmed in documentation: /planets and /complete-panchang
     // /planets gives chart info (positions, signs)
     // /complete-panchang gives daily panchang info
-    // Dasha/Strength/Yogas are not explicitly documented in the free tier snippets, 
-    // so we will try common paths but handle failures gracefully.
     
-    const [planetsRes, panchangRes] = await Promise.all([
+    // Helper to map sign number (1-12) to name
+    const SIGNS = [
+      "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
+      "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+    ];
+    const getSignName = (val: any) => {
+        if (typeof val === 'string') return val;
+        if (typeof val === 'number') return SIGNS[val - 1] || 'Unknown';
+        return 'Unknown';
+    };
+
+    // Extended Endpoints List
+    const CHART_IDS = [
+      'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D10', 
+      'D11', 'D12', 'D16', 'D20', 'D24', 'D27', 'D30', 'D40', 'D45', 'D60'
+    ];
+
+    // Parallel Fetching Strategy
+    // 1. Core Data (Planets + Panchang) - Critical
+    // 2. Extended Planets - High Value
+    // 3. Divisional Charts - Comprehensive
+    // 4. Navamsa (D9) - Specific Endpoint
+    
+    const [planetsRes, panchangRes, extendedRes, navamsaRes] = await Promise.all([
       fetch(`${BASE_URL}/planets`, { method: 'POST', headers, body: JSON.stringify(payload) }),
-      fetch(`${BASE_URL}/complete-panchang`, { method: 'POST', headers, body: JSON.stringify(payload) })
+      fetch(`${BASE_URL}/complete-panchang`, { method: 'POST', headers, body: JSON.stringify(payload) }),
+      fetch(`${BASE_URL}/planets/extended`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+      fetch(`${BASE_URL}/navamsa-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null)
     ]);
 
     if (!planetsRes.ok) throw new Error(`Planets API failed: ${planetsRes.statusText}`);
     
     const planetsData = await planetsRes.json();
     const panchangData = panchangRes.ok ? await panchangRes.json() : null;
+    const extendedData = (extendedRes && extendedRes.ok) ? await extendedRes.json() : [];
 
-    // Process Planets Data to match AstroData interface
-    // planetsData.output is an array of objects where each object has a key like "0": {name: "Sun"...} 
-    // OR it might be a direct array of planet objects depending on exact version. 
-    // The snippet showed: "output": [ {"0": {...}}, {"1": {...}} ] which is weird. 
-    // Let's inspect the structure safely.
+    // Fetch Divisional Charts (D-Charts)
+    // We fetch these in parallel but handle failures gracefully as they might be tier-restricted
+    const dChartPromises = CHART_IDS.map(async (id) => {
+        try {
+            const res = await fetch(`${BASE_URL}/horo_chart/${id}`, { 
+                method: 'POST', 
+                headers, 
+                body: JSON.stringify(payload) 
+            });
+            if (!res.ok) return { id, data: null };
+            const data = await res.json();
+            return { id, data };
+        } catch (e) {
+            return { id, data: null };
+        }
+    });
+
+    const dChartsResults = await Promise.all(dChartPromises);
+    const divisionalCharts: Record<string, any[]> = {}; // Store raw planet list for each chart
     
-    let planetsList: any[] = [];
-    if (Array.isArray(planetsData.output)) {
-        // Handle the weird array-of-objects structure if necessary, or flat array
-        // Snippet showed: [{"0": {id:0, name:"Sun"...}}, ...] or just [{id:0...}]
-        // We will flatten it if needed.
-        planetsList = planetsData.output.map((p: any) => Object.values(p)[0] || p).flat();
+    // Process Navamsa separately
+    if (navamsaRes && navamsaRes.ok) {
+        const navData = await navamsaRes.json();
+        if (navData.output) {
+             // Flatten the object structure {"0": {...}, "1": {...}}
+             const navList = Object.values(navData.output).map((p: any) => ({
+                 name: p.name,
+                 current_sign: p.current_sign,
+                 sign: getSignName(p.current_sign),
+                 house: p.house_number,
+                 isRetro: p.isRetro
+             }));
+             divisionalCharts['D9'] = navList;
+        }
     }
 
-    const getPlanet = (name: string) => planetsList.find((p: any) => p.name === name) || {};
+    dChartsResults.forEach(r => {
+        if (r.data && r.data.output) {
+             // Adapt based on actual response structure of horo_chart
+             // Usually it returns a list of planets in that chart
+             divisionalCharts[r.id] = r.data.output; 
+        }
+    });
+
+    // Process Planets Data to match AstroData interface
+    // The /planets endpoint returns a structure like:
+    // "output": [ { "0": {name: "Ascendant"...}, "1": {name: "Sun"...} } ]
+    
+    let basicPlanetsList: any[] = [];
+    if (Array.isArray(planetsData.output)) {
+        basicPlanetsList = planetsData.output.flatMap((item: any) => {
+            // If item has numerical keys "0", "1", etc., extract values
+            if (item["0"]) return Object.values(item);
+            return item;
+        });
+    }
+
+    // Helper to normalize planet names (e.g., "Sun" vs "SUN")
+    const normalizeName = (n: string) => n.toLowerCase();
+
+    // Merge Basic and Extended Data
+    // Extended data is preferred because it has more fields (Nakshatra, etc.)
+    // But Basic data is more reliable for core positions if extended fails.
+    
+    // Parse Extended Response
+    // The structure is { "output": { "Ascendant": {...}, "Sun": {...} } }
+    let extendedList: any[] = [];
+    if (extendedData && extendedData.output) {
+         // Convert dictionary to array
+         extendedList = Object.entries(extendedData.output).map(([key, val]: [string, any]) => ({
+             name: key, // Use key as name (e.g., "Sun")
+             ...val
+         }));
+    } else if (Array.isArray(extendedData)) {
+         extendedList = extendedData;
+    }
+    
+    // Create a unified map of planets
+    const planetMap: Record<string, any> = {};
+
+    // 1. Populate from Basic
+    basicPlanetsList.forEach(p => {
+        if (p.name) planetMap[normalizeName(p.name)] = {
+            ...p,
+            sign: getSignName(p.current_sign || p.sign) // Handle both formats
+        };
+    });
+
+    // 2. Override/Enrich with Extended
+    extendedList.forEach(p => {
+        // Extended payload uses "name" or key
+        const pName = p.localized_name || p.name;
+        if (pName) {
+            const key = normalizeName(pName);
+            planetMap[key] = {
+                ...planetMap[key],
+                ...p,
+                name: pName,
+                // Map Extended fields to Standard fields
+                sign: p.zodiac_sign_name || p.sign || planetMap[key]?.sign,
+                signLord: p.zodiac_sign_lord || p.signLord,
+                nakshatra: p.nakshatra_name || p.nakshatra,
+                nakshatraLord: p.nakshatra_vimsottari_lord || p.nakshatraLord,
+                nakshatra_pad: p.nakshatra_pada || p.nakshatra_pad,
+                house: p.house_number || p.house
+            };
+        }
+    });
+
+    const getPlanet = (name: string) => planetMap[normalizeName(name)] || {};
+    
     const ascendant = getPlanet("Ascendant");
     const moon = getPlanet("Moon");
 
@@ -169,17 +289,26 @@ export async function fetchAstrologyData(
     return {
         ascendant: ascendant.sign || 'Unknown',
         moonSign: moon.sign || 'Unknown',
-        moonNakshatra: moon.nakshatra || 'Unknown',
+        // Nakshatra might come from Extended Planet (moon) or Panchang
+        moonNakshatra: moon.nakshatra || panchangData?.nakshatra?.details?.nak_name || 'Unknown',
+        
         // Dasha is not directly available in free tier endpoints found, using placeholder or derived if possible
         currentMahadasha: 'Unknown', 
         currentAntardasha: 'Unknown',
-        planetaryPositions: planetsList.reduce((acc: Record<string, string>, p: any) => {
+        
+        planetaryPositions: Object.values(planetMap).reduce((acc: Record<string, string>, p: any) => {
           if (p.name) acc[p.name] = p.sign;
           return acc;
         }, {}),
-        strength: null, // Not available in free tier
-        yogas: [], // Specific birth yogas not available in free tier
+        
+        strength: null, 
+        yogas: [], 
         panchang: panchangData,
+        
+        // Extended Data
+        extendedPlanets: Object.values(planetMap), // Returns the merged rich objects
+        divisionalCharts: divisionalCharts,
+
         timezone: geo.timezoneId,
         timezoneOffset: timezone
     };
