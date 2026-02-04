@@ -95,6 +95,18 @@ export async function fetchAstrologyData(
   place: string
 ): Promise<AstroData> {
   
+  // Validation Layer (Backend Responsibility)
+  const dateObj = new Date(date);
+  if (isNaN(dateObj.getTime())) {
+    throw new Error("Invalid birth data: Date format is incorrect.");
+  }
+  if (!time.match(/^\d{1,2}:\d{2}$/)) {
+    throw new Error("Invalid birth data: Time must be in HH:MM format.");
+  }
+  if (!place || place.trim().length === 0) {
+    throw new Error("Invalid birth data: Place cannot be empty.");
+  }
+
   if (!API_KEY || API_KEY === 'PLACEHOLDER_API_KEY') {
      throw new Error("Missing Astrology API Key. Please configure VITE_ASTROLOGY_API_KEY.");
   }

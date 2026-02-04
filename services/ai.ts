@@ -128,7 +128,32 @@ export async function generateProfileInsights(userProfile: UserProfile): Promise
     }
   });
 
-  return JSON.parse(response.text || "{}");
+  // AI Safety & Hallucination Check
+  try {
+      const rawData = response.text || "{}";
+      const data = JSON.parse(rawData);
+
+      // Simple Schema Validation (Hallucination Guard)
+      if (!data.lagnaAnalysis || !data.moonAnalysis || !data.lifePhaseAnalysis) {
+          throw new Error("AI Hallucination Detected: Missing core analysis sections.");
+      }
+      
+      return data;
+  } catch (e) {
+      console.error("AI Safety Check Failed:", e);
+      // Policy: Return templated response; log incident
+      return {
+          lagnaAnalysis: { headline: "Pattern Unclear", content: "We couldn't map your pattern securely this time. Please try again." },
+          moonAnalysis: { headline: "Emotional Baseline", tone: "Neutral", content: "Analysis unavailable.", nakshatraContent: "N/A" },
+          lifePhaseAnalysis: { headline: "Current Phase", theme: "Review", description: "Data momentarily unavailable." },
+          lifeAreas: {
+              career: { status: "Stable", insight: "Focus on current tasks." },
+              wealth: { status: "Stable", insight: "Maintain balance." },
+              relationships: { status: "Sensitive", insight: "Practice patience." },
+              energy: { status: "Moderate", insight: "Rest well." }
+          }
+      };
+  }
 }
 
 export async function askVedAgyaChat(question: string, userProfile: UserProfile): Promise<string> {
