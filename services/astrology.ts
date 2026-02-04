@@ -148,9 +148,8 @@ export async function fetchAstrologyData(
 
     // Extended Endpoints List
     const CHART_IDS = [
-      'D1', 'D3', 'D7', 'D8', 'D10', 
-      'D11', 'D12', 'D16', 'D20', 'D24', 'D27', 'D30', 'D40', 'D45', 'D60'
-    ];
+  'D1', 'D3', 'D8'
+];
 
     // Parallel Fetching Strategy
     // 1. Core Data (Planets + Panchang) - Critical
@@ -161,8 +160,19 @@ export async function fetchAstrologyData(
     // 6. Chaturthamsa (D4) - Specific Endpoint
     // 7. Panchamsa (D5) - Specific Endpoint
     // 8. Shasthamsa (D6) - Specific Endpoint
+    // 9. Saptamsa (D7) - Specific Endpoint
+    // 10. Dasamsa (D10) - Specific Endpoint
+    // 11. Rudramsa (D11) - Specific Endpoint
+    // 12. Dwadasamsa (D12) - Specific Endpoint
+    // 13. Shodasamsa (D16) - Specific Endpoint
+    // 14. Vimsamsa (D20) - Specific Endpoint
+    // 15. Siddhamsa (D24) - Specific Endpoint
+    // 16. Nakshatramsa (D27) - Specific Endpoint
+    // 17. Trimsamsa (D30) - Specific Endpoint
+    // 18. Khavedamsa (D40) - Specific Endpoint
+    // 19. Akshavedamsa (D45) - Specific Endpoint
     
-    const [planetsRes, panchangRes, extendedRes, navamsaRes, horaRes, d4Res, d5Res, d6Res] = await Promise.all([
+    const [planetsRes, panchangRes, extendedRes, navamsaRes, horaRes, d4Res, d5Res, d6Res, d7Res, d10Res, d11Res, d12Res, d16Res, d20Res, d24Res, d27Res, d30Res, d40Res, d45Res, d60Res] = await Promise.all([
       fetch(`${BASE_URL}/planets`, { method: 'POST', headers, body: JSON.stringify(payload) }),
       fetch(`${BASE_URL}/complete-panchang`, { method: 'POST', headers, body: JSON.stringify(payload) }),
       fetch(`${BASE_URL}/planets/extended`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
@@ -170,8 +180,20 @@ export async function fetchAstrologyData(
       fetch(`${BASE_URL}/d2-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
       fetch(`${BASE_URL}/d4-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
       fetch(`${BASE_URL}/d5-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
-      fetch(`${BASE_URL}/d6-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null)
-    ]);
+      fetch(`${BASE_URL}/d6-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+      fetch(`${BASE_URL}/d7-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+      fetch(`${BASE_URL}/d10-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+      fetch(`${BASE_URL}/d11-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+      fetch(`${BASE_URL}/d12-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+      fetch(`${BASE_URL}/d16-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+      fetch(`${BASE_URL}/d20-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+      fetch(`${BASE_URL}/d24-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+      fetch(`${BASE_URL}/d27-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+      fetch(`${BASE_URL}/d30-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+      fetch(`${BASE_URL}/d40-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+  fetch(`${BASE_URL}/d45-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+  fetch(`${BASE_URL}/d60-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null)
+]);
 
     if (!planetsRes.ok) throw new Error(`Planets API failed: ${planetsRes.statusText}`);
     
@@ -274,6 +296,186 @@ export async function fetchAstrologyData(
              divisionalCharts['D6'] = d6List;
         }
     }
+
+    // Process Saptamsa (D7) separately
+    if (d7Res && d7Res.ok) {
+        const d7Data = await d7Res.json();
+        if (d7Data.output) {
+             const d7List = Object.values(d7Data.output).map((p: any) => ({
+                 name: p.name,
+                 current_sign: p.current_sign,
+                 sign: getSignName(p.current_sign),
+                 house: p.house_number,
+                 isRetro: p.isRetro
+             }));
+             divisionalCharts['D7'] = d7List;
+        }
+    }
+
+    // Process Dasamsa (D10) separately
+    if (d10Res && d10Res.ok) {
+        const d10Data = await d10Res.json();
+        if (d10Data.output) {
+             const d10List = Object.values(d10Data.output).map((p: any) => ({
+                 name: p.name,
+                 current_sign: p.current_sign,
+                 sign: getSignName(p.current_sign),
+                 house: p.house_number,
+                 isRetro: p.isRetro
+             }));
+             divisionalCharts['D10'] = d10List;
+        }
+    }
+
+    // Process Rudramsa (D11) separately
+    if (d11Res && d11Res.ok) {
+        const d11Data = await d11Res.json();
+        if (d11Data.output) {
+             const d11List = Object.values(d11Data.output).map((p: any) => ({
+                 name: p.name,
+                 current_sign: p.current_sign,
+                 sign: getSignName(p.current_sign),
+                 house: p.house_number,
+                 isRetro: p.isRetro
+             }));
+             divisionalCharts['D11'] = d11List;
+        }
+    }
+
+    // Process Dwadasamsa (D12) separately
+    if (d12Res && d12Res.ok) {
+        const d12Data = await d12Res.json();
+        if (d12Data.output) {
+             const d12List = Object.values(d12Data.output).map((p: any) => ({
+                 name: p.name,
+                 current_sign: p.current_sign,
+                 sign: getSignName(p.current_sign),
+                 house: p.house_number,
+                 isRetro: p.isRetro
+             }));
+             divisionalCharts['D12'] = d12List;
+        }
+    }
+
+    // Process Shodasamsa (D16) separately
+    if (d16Res && d16Res.ok) {
+        const d16Data = await d16Res.json();
+        if (d16Data.output) {
+             const d16List = Object.values(d16Data.output).map((p: any) => ({
+                 name: p.name,
+                 current_sign: p.current_sign,
+                 sign: getSignName(p.current_sign),
+                 house: p.house_number,
+                 isRetro: p.isRetro
+             }));
+             divisionalCharts['D16'] = d16List;
+        }
+    }
+
+    // Process Vimsamsa (D20) separately
+    if (d20Res && d20Res.ok) {
+        const d20Data = await d20Res.json();
+        if (d20Data.output) {
+             const d20List = Object.values(d20Data.output).map((p: any) => ({
+                 name: p.name,
+                 current_sign: p.current_sign,
+                 sign: getSignName(p.current_sign),
+                 house: p.house_number,
+                 isRetro: p.isRetro
+             }));
+             divisionalCharts['D20'] = d20List;
+        }
+    }
+
+    // Process Siddhamsa (D24) separately
+    if (d24Res && d24Res.ok) {
+        const d24Data = await d24Res.json();
+        if (d24Data.output) {
+             const d24List = Object.values(d24Data.output).map((p: any) => ({
+                 name: p.name,
+                 current_sign: p.current_sign,
+                 sign: getSignName(p.current_sign),
+                 house: p.house_number,
+                 isRetro: p.isRetro
+             }));
+             divisionalCharts['D24'] = d24List;
+        }
+    }
+
+    // Process Nakshatramsa (D27) separately
+    if (d27Res && d27Res.ok) {
+        const d27Data = await d27Res.json();
+        if (d27Data.output) {
+             const d27List = Object.values(d27Data.output).map((p: any) => ({
+                 name: p.name,
+                 current_sign: p.current_sign,
+                 sign: getSignName(p.current_sign),
+                 house: p.house_number,
+                 isRetro: p.isRetro
+             }));
+             divisionalCharts['D27'] = d27List;
+        }
+    }
+
+    // Process Trimsamsa (D30) separately
+    if (d30Res && d30Res.ok) {
+        const d30Data = await d30Res.json();
+        if (d30Data.output) {
+             const d30List = Object.values(d30Data.output).map((p: any) => ({
+                 name: p.name,
+                 current_sign: p.current_sign,
+                 sign: getSignName(p.current_sign),
+                 house: p.house_number,
+                 isRetro: p.isRetro
+             }));
+             divisionalCharts['D30'] = d30List;
+        }
+    }
+
+    // Process Khavedamsa (D40) separately
+    if (d40Res && d40Res.ok) {
+        const d40Data = await d40Res.json();
+        if (d40Data.output) {
+             const d40List = Object.values(d40Data.output).map((p: any) => ({
+                 name: p.name,
+                 current_sign: p.current_sign,
+                 sign: getSignName(p.current_sign),
+                 house: p.house_number,
+                 isRetro: p.isRetro
+             }));
+             divisionalCharts['D40'] = d40List;
+        }
+    }
+
+    // Process Akshavedamsa (D45) separately
+    if (d45Res && d45Res.ok) {
+        const d45Data = await d45Res.json();
+        if (d45Data.output) {
+      const d45List = Object.values(d45Data.output).map((p: any) => ({
+        name: p.name,
+        current_sign: p.current_sign,
+        sign: getSignName(p.current_sign),
+        house: p.house_number,
+        isRetro: p.isRetro
+      }));
+      divisionalCharts['D45'] = d45List;
+    }
+  }
+
+  // Process Shashtiamsa (D60) separately
+  if (d60Res && d60Res.ok) {
+    const d60Data = await d60Res.json();
+    if (d60Data.output) {
+      const d60List = Object.values(d60Data.output).map((p: any) => ({
+        name: p.name,
+        current_sign: p.current_sign,
+        sign: getSignName(p.current_sign),
+        house: p.house_number,
+        isRetro: p.isRetro
+      }));
+      divisionalCharts['D60'] = d60List;
+    }
+  }
 
     dChartsResults.forEach(r => {
         if (r.data && r.data.output) {
