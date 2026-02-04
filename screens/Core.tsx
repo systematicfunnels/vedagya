@@ -188,7 +188,12 @@ export const MenuScreen: React.FC<NavProps> = ({ setScreen, userProfile }) => (
         {userProfile.name ? userProfile.name[0] : 'G'}
       </div>
       <h2 className="font-serif text-2xl">{userProfile.name || 'Guest User'}</h2>
-      <p className="text-sm text-primary/50">{userProfile.astroData?.ascendant} Ascendant • {userProfile.astroData?.moonSign} Moon</p>
+      <p className="text-sm text-primary/50 mb-1">{userProfile.astroData?.ascendant} Ascendant • {userProfile.astroData?.moonSign} Moon</p>
+      {userProfile.astroData?.timezone && (
+        <p className="text-xs text-primary/30 font-mono">
+           {userProfile.astroData.timezone} (GMT {userProfile.astroData.timezoneOffset && userProfile.astroData.timezoneOffset > 0 ? '+' : ''}{userProfile.astroData.timezoneOffset})
+        </p>
+      )}
     </div>
 
     <div className="space-y-6">

@@ -51,6 +51,10 @@ export interface AstroData {
   strength?: any; // Result from /vedic/strength
   yogas?: string[]; // Result from /vedic/yogas (extracted names)
   panchang?: any; // Result from /vedic/panchang
+  
+  // Debug/Confirmation
+  timezone?: string;
+  timezoneOffset?: number;
 }
 
 export interface AiInsights {

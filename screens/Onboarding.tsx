@@ -161,7 +161,19 @@ export const BirthDateQuestionScreen: React.FC<NavProps> = ({ setScreen, setBirt
 );
 
 // Step 3b: Enter Date + Place
-export const BirthDateInputScreen: React.FC<NavProps> = ({ setScreen, userProfile, updateUserProfile }) => (
+export const BirthDateInputScreen: React.FC<NavProps> = ({ setScreen, userProfile, updateUserProfile }) => {
+  const [error, setError] = useState<string | null>(null);
+
+  const handleNext = () => {
+    if (!userProfile.birthDate || !userProfile.birthPlace) {
+      setError("Please enter both date and place of birth.");
+      return;
+    }
+    setError(null);
+    setScreen(Screen.BirthTimeQuestion);
+  };
+
+  return (
   <Layout title="Birth Date" showBack onBack={() => setScreen(Screen.BirthDateQuestion)}>
      <div className="flex flex-col h-full">
       <div className="w-full h-1 bg-primary/5 rounded-full mb-8 overflow-hidden">
@@ -175,23 +187,32 @@ export const BirthDateInputScreen: React.FC<NavProps> = ({ setScreen, userProfil
         type="date" 
         placeholder="DD / MM / YYYY" 
         value={userProfile.birthDate}
-        onChange={(e) => updateUserProfile({ birthDate: e.target.value })}
+        onChange={(e) => {
+           updateUserProfile({ birthDate: e.target.value });
+           setError(null);
+        }}
       />
       <Input 
         label="Place of Birth" 
         type="text" 
         placeholder="City, Country" 
         value={userProfile.birthPlace}
-        onChange={(e) => updateUserProfile({ birthPlace: e.target.value })}
+        onChange={(e) => {
+           updateUserProfile({ birthPlace: e.target.value });
+           setError(null);
+        }}
       />
       <p className="text-xs text-primary/40 mt-2">Please choose your birth city, not where you live now.</p>
       
+      {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
+
       <div className="mt-auto pt-8">
-        <Button onClick={() => setScreen(Screen.BirthTimeQuestion)}>Next Step</Button>
+        <Button onClick={handleNext}>Next Step</Button>
       </div>
     </div>
   </Layout>
 );
+};
 
 // Step 3c: Do you know Time?
 export const BirthTimeQuestionScreen: React.FC<NavProps> = ({ setScreen, setBirthPrecision, updateUserProfile }) => (
@@ -220,7 +241,21 @@ export const BirthTimeQuestionScreen: React.FC<NavProps> = ({ setScreen, setBirt
 );
 
 // Step 3d: Exact Time Input
-export const BirthTimeInputScreen: React.FC<NavProps> = ({ setScreen, setBirthPrecision, updateUserProfile, userProfile }) => (
+export const BirthTimeInputScreen: React.FC<NavProps> = ({ setScreen, setBirthPrecision, updateUserProfile, userProfile }) => {
+  const [error, setError] = useState<string | null>(null);
+
+  const handleContinue = () => {
+    if (!userProfile.birthTime) {
+      setError("Please enter your birth time.");
+      return;
+    }
+    setError(null);
+    setBirthPrecision('Exact');
+    updateUserProfile({ birthPrecision: 'Exact' });
+    setScreen(Screen.PersonalDetails);
+  };
+
+  return (
   <Layout title="Exact Time" showBack onBack={() => setScreen(Screen.BirthTimeQuestion)}>
     <div className="flex flex-col h-full">
       <div className="w-full h-1 bg-primary/5 rounded-full mb-8 overflow-hidden">
@@ -232,19 +267,22 @@ export const BirthTimeInputScreen: React.FC<NavProps> = ({ setScreen, setBirthPr
         label="Time of Birth" 
         type="time" 
         value={userProfile.birthTime}
-        onChange={(e) => updateUserProfile({ birthTime: e.target.value })}
+        onChange={(e) => {
+           updateUserProfile({ birthTime: e.target.value });
+           setError(null);
+        }}
       />
       <p className="text-xs text-primary/40 mt-1 mb-8">If your birth certificate shows a different format, just enter the closest time you see there.</p>
+      
+      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
       <div className="mt-auto pt-8">
-        <Button onClick={() => {
-           setBirthPrecision('Exact');
-           updateUserProfile({ birthPrecision: 'Exact' });
-           setScreen(Screen.PersonalDetails);
-        }}>Continue</Button>
+        <Button onClick={handleContinue}>Continue</Button>
       </div>
     </div>
   </Layout>
 );
+};
 
 // Step 3e: Approx Time (Rectification Lite)
 export const BirthTimeConfidenceScreen: React.FC<NavProps> = ({ setScreen, setBirthPrecision, updateUserProfile }) => (
