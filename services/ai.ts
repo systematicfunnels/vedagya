@@ -226,7 +226,7 @@ async function callOpenRouterChat(question: string, userProfile: UserProfile): P
             "X-Title": "VedAgya"
         },
         body: JSON.stringify({
-            "model": "meta-llama/llama-3.1-8b-instruct:free", // Using a free/reliable fallback
+            "model": "google/gemini-2.0-flash-lite-preview-02-05:free", // Updated to a valid free model
             "messages": [
                 { "role": "system", "content": systemPrompt },
                 { "role": "user", "content": `User Question: "${question}"\n\n${context}\n${liveContext}` }
