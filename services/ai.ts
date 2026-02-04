@@ -1,8 +1,14 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile, AstroData, AiInsights } from "../types";
 
-// Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+// Initialize Gemini Client Lazily
+const getAiClient = () => {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
+  if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY') {
+    throw new Error("Missing Gemini API Key. Please configure VITE_GEMINI_API_KEY in .env.local or Vercel Environment Variables.");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 const VEDAGYA_SYSTEM_INSTRUCTION = `
 You are VedAgya, a Vedic astrology engine focused on explaining life patterns, emotional phases, and timing logic.
@@ -79,9 +85,16 @@ const InsightsSchema = {
 };
 
 export async function generateProfileInsights(userProfile: UserProfile): Promise<AiInsights> {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY') {
-    throw new Error("Missing Gemini API Key. Please configure VITE_GEMINI_API_KEY in .env.local");
+  let ai;
+  try {
+    ai = getAiClient();
+  } catch (e) {
+    console.warn("Gemini Client Init Failed:", e);
+    // Return mock/empty or throw? 
+    // Since this is critical for insights, we probably can't proceed with Gemini.
+    // We could try OpenRouter here too if we implemented a fallback for insights, 
+    // but for now, let's throw or return null to avoid crash loop.
+    throw e;
   }
 
   const model = "gemini-2.5-flash";
@@ -119,13 +132,15 @@ export async function generateProfileInsights(userProfile: UserProfile): Promise
 }
 
 export async function askVedAgyaChat(question: string, userProfile: UserProfile): Promise<string> {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY') {
+  let ai;
+  try {
+    ai = getAiClient();
+  } catch (e) {
      // If Gemini Key is missing, try OpenRouter directly
      try {
         return await callOpenRouterChat(question, userProfile);
      } catch (err) {
-        throw new Error("Missing Gemini API Key and OpenRouter failed: " + err);
+        return "I'm unable to connect to my knowledge base right now. Please check the API configuration.";
      }
   }
 
