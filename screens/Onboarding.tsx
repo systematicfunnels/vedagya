@@ -90,8 +90,7 @@ export const SplashScreen: React.FC<NavProps> = ({ setScreen }) => (
       <div className="mb-8">
          <Sparkles strokeWidth={1} size={48} className="text-secondary opacity-80" />
       </div>
-      <h1 className="font-serif text-3xl mb-4 tracking-wide">VedAgya</h1>
-      <h2 className="font-serif text-xl mb-6 text-white/90 font-light">Astrology. But finally explained.</h2>
+      <h1 className="font-serif text-2xl mb-6 text-white/90 font-light">Astrology. But finally explained.</h1>
       <p className="font-sans text-sm text-white/60 max-w-xs leading-relaxed mb-12">
         Move beyond prediction. Understand the logic of your life patterns through Vedic wisdom.
       </p>
@@ -174,12 +173,12 @@ export const BirthDateInputScreen: React.FC<NavProps> = ({ setScreen, userProfil
   };
 
   return (
-  <Layout title="Birth Date" showBack onBack={() => setScreen(Screen.BirthDateQuestion)}>
+  <Layout title="Birth Details" showBack onBack={() => setScreen(Screen.BirthDateQuestion)}>
      <div className="flex flex-col h-full">
       <div className="w-full h-1 bg-primary/5 rounded-full mb-8 overflow-hidden">
         <div className="h-full bg-primary w-1/4 rounded-full"></div>
       </div>
-      <h2 className="font-serif text-2xl mb-2">When and where?</h2>
+      <h2 className="font-serif text-2xl mb-2">Tell us about your birth details</h2>
       <p className="text-primary/60 text-sm mb-8">This sets the foundation of your chart.</p>
       
       <Input 
@@ -296,7 +295,7 @@ export const BirthTimeConfidenceScreen: React.FC<NavProps> = ({ setScreen, setBi
             'Between 8 am – 12 pm (late morning)', 
             'Between 12 pm – 4 pm (afternoon)', 
             'Between 4 pm – 8 pm (evening)', 
-            'Between 8 pm – midnight (late evening)',
+            'Between 8 pm – midnight (late evening)', 
             'Between midnight – 4 am (late night)'
           ].map(t => (
             <button key={t} onClick={() => setScreen(Screen.PersonalDetails)} className="p-4 rounded-xl border border-primary/10 text-left hover:bg-white transition-colors text-sm font-medium text-primary">
@@ -348,19 +347,25 @@ export const LifeEventsQAScreen: React.FC<NavProps> = ({ setScreen, updateUserPr
   const intro = (
     <div className="text-center">
       <HelpCircle size={48} strokeWidth={1} className="text-primary/40 mx-auto mb-4" />
-      <h2 className="font-serif text-2xl mb-4">We'll tune your reading</h2>
+      <h2 className="font-serif text-2xl mb-4">We'll read from your Moon</h2>
       <p className="text-primary/70 text-sm leading-relaxed mb-6">
-        Ascendant (Lagna) depends on exact birth time. Since we don’t have it, we’ll focus on stable parts of your chart like the Moon and long‑term cycles. A few questions about your life story will help us tune your reading.
+        Ascendant (Lagna) depends on exact birth time. Since we don’t have it, we’ll focus on the more reliable parts of your chart: Moon sign, emotional patterns, and long‑term cycles.
+      </p>
+      <p className="text-primary/70 text-sm leading-relaxed mb-6">
+        We’ll also ask a few questions about your life so far to tune the reading.
       </p>
     </div>
   );
 
   const questions = [
-    { question: "How would you describe your childhood (up to age 14)?", options: ["mostly quiet, introverted", "Active and restless", "Very social", "Mixed"] },
-    { question: "Which age range felt like your biggest turning point so far?", options: ["14–17", "18–21", "22–25", "26–30", "After 30"] },
-    { question: "In studies or work, which pattern feels most like you?", options: ["Start quickly/get bored", "Slow and steady", "Intense/Detached", "None"] },
-    { question: "How do you usually handle conflicts?", options: ["React quickly", "Stay calm outside/carry inside", "Avoid confrontation", "Depends"] },
-    { question: "Right now, which life area feels most 'loud' for you?", options: ["Work", "Money", "Love", "Health", "Family", "Spirituality"] },
+    { question: "How would you describe your childhood (up to age 14)?", options: ["Mostly quiet, introverted, absorbed in my own world", "Active and restless, always on the move", "Very social, in groups or with friends a lot", "Mixed or can’t say"] },
+    { question: "Which age range felt like your biggest turning point so far?", options: ["Around 14–17", "Around 18–21", "Around 22–25", "Around 26–30", "After 30", "I can’t say / haven’t felt a big shift yet"] },
+    { question: "In studies or work, which pattern feels most like you?", options: ["I start things quickly but get bored or change tracks often", "I move slowly but stay with one path for a long time", "I swing between intense focus and complete detachment", "None of these fit well"] },
+    { question: "How do you usually handle conflicts?", options: ["I react quickly, speak out, and then cool down", "I stay calm outside, but carry it inside for a long time", "I avoid confrontation as much as possible", "It depends a lot on the situation"] },
+    { question: "Which of these is closer to your current work/study situation?", options: ["I’m building something stable, step by step", "I’m in a period of change or confusion", "I feel stuck, like my efforts aren’t moving things", "I’m exploring or experimenting, not fixed on one path", "None of these fit"] },
+    { question: "In close relationships, you…", options: ["Attach quickly and deeply", "Are cautious and open slowly", "Go in cycles – intense for a while, then distant", "Keep strong emotional boundaries most of the time"] },
+    { question: "Right now, which life area feels most ‘loud’ for you?", options: ["Work / studies", "Money / security", "Love / relationships", "Health / energy", "Family / home", "Inner life / spirituality"] },
+    { question: "How does your energy usually move in a week?", options: ["High bursts, then complete crashes", "Fairly steady, with small ups and downs", "Low most of the time, with rare spikes", "Very unpredictable / depends on external events"] }
   ];
 
   return (
@@ -390,11 +395,11 @@ export const PatternQuestionnaireScreen: React.FC<NavProps> = ({ setScreen, upda
   );
 
   const questions = [
-    { question: "Which description feels most like your general emotional style?", options: ["Intense and quick", "Deep but hidden", "Even and steady", "Shifting"] },
-    { question: "When you're under stress, what happens first?", options: ["Impatient/Reactive", "Withdraw/Quiet", "Overthink", "Over-help others"] },
-    { question: "Which statement fits your career / work journey best so far?", options: ["Changed often", "Stayed in one field", "Still searching", "Followed what came"] },
-    { question: "Which feels closest to your money pattern?", options: ["Bursts (High/Low)", "Steady but worried", "Manage OK", "Blocked"] },
-    { question: "What is your current relationship situation?", options: ["Single/Open", "Relationship/Married", "Single by choice", "Complicated"] },
+    { question: "Which description feels most like your general emotional style?", options: ["I feel things very intensely and quickly", "I feel deeply but rarely show it", "I stay mostly even and steady", "I shift a lot – some days high, some days low"] },
+    { question: "When you're under stress, what happens first?", options: ["I become impatient or reactive", "I withdraw and go quiet", "I overthink and get anxious", "I try to over-help or please others"] },
+    { question: "Which statement fits your career / work journey best so far?", options: ["I’ve changed paths often / experimented a lot", "I’ve stayed in one field or job for a long time", "I’m still searching for what I want to do", "I’ve mostly followed what came to me (destiny driven)"] },
+    { question: "Which feels closest to your money pattern?", options: ["High bursts of income, then low periods", "Steady, but I always worry about not having enough", "I manage okay, but can’t seem to save much", "I feel blocked, like money avoids me"] },
+    { question: "What is your current relationship situation?", options: ["Single and happy / Open to whatever comes", "In a committed relationship / Married", "Single, but feeling lonely or seeking", "It’s complicated / I’m going through a break‑up"] },
   ];
 
   return (
@@ -415,12 +420,12 @@ export const PatternQuestionnaireScreen: React.FC<NavProps> = ({ setScreen, upda
 
 // Screen 4: Personal Details (Standard)
 export const PersonalDetailsScreen: React.FC<NavProps> = ({ setScreen, userProfile, updateUserProfile }) => (
-  <Layout title="About You" showBack onBack={() => setScreen(Screen.Login)}>
+  <Layout title="Personal Details" showBack onBack={() => setScreen(Screen.Login)}>
     <div className="flex flex-col h-full">
       <div className="w-full h-1 bg-primary/5 rounded-full mb-8 overflow-hidden">
         <div className="h-full bg-primary w-2/3 rounded-full"></div>
       </div>
-      <h2 className="font-serif text-2xl mb-8">How should we address you?</h2>
+      <h2 className="font-serif text-2xl mb-8">Tell us about yourself</h2>
       <Input 
         label="Full Name" 
         placeholder="Your Name" 
@@ -429,12 +434,12 @@ export const PersonalDetailsScreen: React.FC<NavProps> = ({ setScreen, userProfi
       />
       <div className="mb-6">
         <label className="block text-primary/60 text-xs uppercase tracking-widest font-medium mb-3 pl-1">Gender</label>
-        <div className="flex gap-4">
-          {['Female', 'Male', 'Other'].map(g => (
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {['Male', 'Female', 'Non-binary', 'Prefer not to say'].map(g => (
             <button 
               key={g} 
               onClick={() => updateUserProfile({ gender: g })}
-              className={`flex-1 py-3 border rounded-xl text-sm transition-colors ${
+              className={`py-3 border rounded-xl text-sm transition-colors ${
                 userProfile.gender === g 
                 ? 'bg-primary text-white border-primary' 
                 : 'border-primary/20 text-primary/70 hover:bg-primary/5'
@@ -444,7 +449,12 @@ export const PersonalDetailsScreen: React.FC<NavProps> = ({ setScreen, userProfi
             </button>
           ))}
         </div>
-        <button className="text-xs text-primary/50 mt-2 underline">I prefer not to say / Custom</button>
+        <Input 
+            label="Custom (optional)" 
+            placeholder="Type here..." 
+            value={['Male', 'Female', 'Non-binary', 'Prefer not to say'].includes(userProfile.gender || '') ? '' : userProfile.gender}
+            onChange={(e) => updateUserProfile({ gender: e.target.value })}
+        />
       </div>
       <div className="mt-auto pt-8">
         <Button onClick={() => setScreen(Screen.InterestSelection)}>Next Step</Button>
@@ -462,12 +472,12 @@ export const InterestSelectionScreen: React.FC<NavProps> = ({ setScreen, userPro
     else updateUserProfile({ interests: [...current, i] });
   }
   return (
-    <Layout title="Focus Areas" showBack onBack={() => setScreen(Screen.PersonalDetails)}>
+    <Layout title="Interests" showBack onBack={() => setScreen(Screen.PersonalDetails)}>
       <div className="flex flex-col h-full">
          <div className="w-full h-1 bg-primary/5 rounded-full mb-8 overflow-hidden">
           <div className="h-full bg-primary w-full rounded-full"></div>
         </div>
-        <h2 className="font-serif text-2xl mb-2">Customize your experience</h2>
+        <h2 className="font-serif text-2xl mb-2">Customize your astrological experience</h2>
         <p className="text-primary/60 text-sm mb-8">Select 4 or more areas you want clarity on.</p>
         <div className="flex flex-wrap gap-3">
           {interests.map(item => (
@@ -506,18 +516,23 @@ export const ProcessingScreen: React.FC<NavProps> = ({ setScreen, birthPrecision
 
         // 1. Fetch Astro Data (if precision allows)
         if (birthPrecision === 'Exact') {
-            setText("Connecting to Vedic Engine...");
+            setText("Reading Lagna...");
+            // fetchAstrologyData now handles geo-lookup and DST syncing internally
             astroData = await fetchAstrologyData(userProfile.birthDate, userProfile.birthTime, userProfile.birthPlace);
+            if (astroData.timezone) {
+               setText(`Syncing Timezone (${astroData.timezone})...`);
+               await new Promise(r => setTimeout(r, 800)); // Small pause to let user see we found it
+            }
             updateUserProfile({ astroData });
         } else if (birthPrecision === 'Approximate' || birthPrecision === 'DateOnly') {
              // Fetch partial data based on 12:00 PM for Moon Sign
-            setText("Mapping Lunar Cycles...");
+            setText("Mapping Nakshatra...");
             astroData = await fetchAstrologyData(userProfile.birthDate, "12:00", userProfile.birthPlace);
             updateUserProfile({ astroData });
         }
 
         // 2. Generate AI Insights
-        setText("Analyzing Logic Patterns...");
+        setText("Understanding your life phase...");
         // Pass the updated astroData directly or use the one in scope
         const insights = await generateProfileInsights({ ...userProfile, astroData: astroData || userProfile.astroData });
         updateUserProfile({ aiInsights: insights });

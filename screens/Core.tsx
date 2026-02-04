@@ -35,7 +35,7 @@ export const HomeScreen: React.FC<NavProps> = ({ setScreen, birthPrecision, user
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xs font-bold uppercase tracking-widest text-primary/40">
-                {hasChart ? 'Your Blueprint' : 'Personal Patterns'}
+                Personal Astro Identity
             </h2>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -84,32 +84,30 @@ export const HomeScreen: React.FC<NavProps> = ({ setScreen, birthPrecision, user
                 </div>
               </Card>
             )}
+            
+            {/* Mahadasha & Antardasha cards added to grid for full 4-card identity set if possible, 
+                or we keep Dasha separate. User requested "Cards: Lagna, Moon, Mahadasha, Antardasha" 
+                under "Personal Astro Identity". So I should move Dasha here. */}
+            <Card onClick={() => setScreen(Screen.DashaOverview)} className="flex flex-col gap-3 hover:bg-white/60">
+                <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+                  <Clock size={16} />
+                </div>
+                <div>
+                  <p className="text-xs text-primary/50 mb-1">Mahadasha</p>
+                  <p className="font-serif text-lg">{astro?.currentMahadasha || '—'}</p>
+                </div>
+            </Card>
+            
+            <Card onClick={() => setScreen(Screen.DashaOverview)} className="flex flex-col gap-3 hover:bg-white/60">
+                <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+                  <Clock size={16} />
+                </div>
+                <div>
+                  <p className="text-xs text-primary/50 mb-1">Antardasha</p>
+                  <p className="font-serif text-lg">{astro?.currentAntardasha || '—'}</p>
+                </div>
+            </Card>
           </div>
-        </section>
-
-        {/* Active Time Period */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-primary/40">Current Timing</h2>
-          </div>
-          <Card onClick={() => setScreen(Screen.DashaOverview)} className="relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-24 h-24 bg-secondary/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-2">
-                <Clock size={16} className="text-secondary" />
-                <span className="text-xs font-medium text-secondary">
-                    {hasChart ? 'MAHADASHA' : 'LIFE PHASE'}
-                </span>
-              </div>
-              <h3 className="font-serif text-2xl mb-1">{insights?.lifePhaseAnalysis?.headline || "Growth Phase"}</h3>
-              <p className="text-sm text-primary/70 mb-4 line-clamp-2">
-                {insights?.lifePhaseAnalysis?.description || "A period of expansion, learning, and finding deeper meaning in your daily routines."}
-              </p>
-              <div className="flex items-center text-primary font-medium text-xs">
-                Explore Timeline <ChevronRight size={14} className="ml-1" />
-              </div>
-            </div>
-          </Card>
         </section>
 
         {/* Life Areas - Populated by AI */}
