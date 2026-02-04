@@ -148,7 +148,7 @@ export async function fetchAstrologyData(
 
     // Extended Endpoints List
     const CHART_IDS = [
-      'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D10', 
+      'D1', 'D3', 'D5', 'D6', 'D7', 'D8', 'D10', 
       'D11', 'D12', 'D16', 'D20', 'D24', 'D27', 'D30', 'D40', 'D45', 'D60'
     ];
 
@@ -157,12 +157,16 @@ export async function fetchAstrologyData(
     // 2. Extended Planets - High Value
     // 3. Divisional Charts - Comprehensive
     // 4. Navamsa (D9) - Specific Endpoint
+    // 5. Hora (D2) - Specific Endpoint
+    // 6. Chaturthamsa (D4) - Specific Endpoint
     
-    const [planetsRes, panchangRes, extendedRes, navamsaRes] = await Promise.all([
+    const [planetsRes, panchangRes, extendedRes, navamsaRes, horaRes, d4Res] = await Promise.all([
       fetch(`${BASE_URL}/planets`, { method: 'POST', headers, body: JSON.stringify(payload) }),
       fetch(`${BASE_URL}/complete-panchang`, { method: 'POST', headers, body: JSON.stringify(payload) }),
       fetch(`${BASE_URL}/planets/extended`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
-      fetch(`${BASE_URL}/navamsa-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null)
+      fetch(`${BASE_URL}/navamsa-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+      fetch(`${BASE_URL}/d2-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null),
+      fetch(`${BASE_URL}/d4-chart-info`, { method: 'POST', headers, body: JSON.stringify(payload) }).catch(() => null)
     ]);
 
     if (!planetsRes.ok) throw new Error(`Planets API failed: ${planetsRes.statusText}`);
@@ -204,6 +208,36 @@ export async function fetchAstrologyData(
                  isRetro: p.isRetro
              }));
              divisionalCharts['D9'] = navList;
+        }
+    }
+
+    // Process Hora (D2) separately
+    if (horaRes && horaRes.ok) {
+        const horaData = await horaRes.json();
+        if (horaData.output) {
+             const horaList = Object.values(horaData.output).map((p: any) => ({
+                 name: p.name,
+                 current_sign: p.current_sign,
+                 sign: getSignName(p.current_sign),
+                 house: p.house_number,
+                 isRetro: p.isRetro
+             }));
+             divisionalCharts['D2'] = horaList;
+        }
+    }
+
+    // Process Chaturthamsa (D4) separately
+    if (d4Res && d4Res.ok) {
+        const d4Data = await d4Res.json();
+        if (d4Data.output) {
+             const d4List = Object.values(d4Data.output).map((p: any) => ({
+                 name: p.name,
+                 current_sign: p.current_sign,
+                 sign: getSignName(p.current_sign),
+                 house: p.house_number,
+                 isRetro: p.isRetro
+             }));
+             divisionalCharts['D4'] = d4List;
         }
     }
 
