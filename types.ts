@@ -97,6 +97,10 @@ export interface UserProfile {
   
   // Generated Content from AI
   aiInsights: AiInsights | null;
+  
+  // Live Tracking
+  currentLocation?: { lat: number; lng: number } | null;
+  currentTimezone?: string;
 }
 
 export interface NavProps {

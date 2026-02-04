@@ -53,12 +53,40 @@ const App: React.FC = () => {
     interests: [],
     questionnaireAnswers: {},
     astroData: null,
-    aiInsights: null
+    aiInsights: null,
+    currentLocation: null,
+    currentTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
   });
 
   const updateUserProfile = (data: Partial<UserProfile>) => {
     setUserProfile(prev => ({ ...prev, ...data }));
   };
+
+  // IMMEDIATE TRACKING: Timezone & Geolocation
+  React.useEffect(() => {
+    // 1. Timezone is critical for live charts
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
+    // 2. Geolocation for live transit accuracy
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          updateUserProfile({
+            currentLocation: {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            },
+            currentTimezone: tz
+          });
+        },
+        (error) => {
+          console.warn("Location tracking disabled:", error);
+          // Ensure timezone is at least accurate
+          updateUserProfile({ currentTimezone: tz });
+        }
+      );
+    }
+  }, []);
 
   const props = { 
     setScreen, 
